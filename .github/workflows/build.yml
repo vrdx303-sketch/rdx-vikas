@@ -17,23 +17,26 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Buildozer & System Dependencies
+    - name: Install System Dependencies & Buildozer
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        pip install --upgrade pip
-        pip install buildozer cython
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev ccache
+        python3 -m pip install --upgrade pip
+        python3 -m pip install --user --upgrade Cython==0.29.36 buildozer
 
-    - name: Build APK via Buildozer
+    - name: Initialize Buildozer and Build APK
       run: |
+        # Ensure buildozer is in path
+        export PATH=$PATH:~/.local/bin
+        
         if [ ! -f "buildozer.spec" ]; then
-            buildozer init
+            echo y | buildozer init
         fi
         
-        # Requirements configure karna
-        sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/g' buildozer.spec
+        # Configure requirements in spec
+        sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/gi' buildozer.spec
         
-        # Build APK directly from repository root files
+        # Run buildozer
         buildozer -v android debug
 
     - name: Upload APK Artifact
