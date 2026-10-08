@@ -17,16 +17,6 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Prepare Workspace
-      run: |
-        mkdir -p extracted_project
-        if [ -f "RDX.zip" ]; then
-          unzip -q RDX.zip -d extracted_project
-        else
-          cp -r * extracted_project/ 2>/dev/null || true
-        fi
-        ls -la extracted_project
-
     - name: Install Buildozer & System Dependencies
       run: |
         sudo apt-get update
@@ -36,27 +26,19 @@ jobs:
 
     - name: Build APK via Buildozer
       run: |
-        cd extracted_project
-        # Find directory containing main.py or buildozer.spec
-        TARGET_DIR=$(find . -maxdepth 3 -name "main.py" -exec dirname {} \; | head -n 1)
-        if [ -z "$TARGET_DIR" ]; then
-          TARGET_DIR="."
-        fi
-        echo "Found project at: $TARGET_DIR"
-        cd "$TARGET_DIR"
-        
+        # Agar root mein buildozer.spec nahi hai toh initialize karein
         if [ ! -f "buildozer.spec" ]; then
             buildozer init
         fi
         
+        # Requirements add karna
         sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/g' buildozer.spec
         
+        # Build APK
         buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: rdx-apk-output
-        path: |
-          extracted_project/**/bin/*.apk
-          **/bin/*.apk
+        path: bin/*.apk
