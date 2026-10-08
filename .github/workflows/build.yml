@@ -17,26 +17,52 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install System Dependencies & Buildozer
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev ccache
-        python3 -m pip install --upgrade pip
-        python3 -m pip install --user --upgrade Cython==0.29.36 buildozer
+        sudo apt-get install -y \
+          python3-pip \
+          build-essential \
+          git \
+          ffmpeg \
+          libffi-dev \
+          libssl-dev \
+          zlib1g-dev \
+          openjdk-17-jdk \
+          unzip \
+          zip \
+          autoconf \
+          libtool \
+          pkg-config \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          ccache
 
-    - name: Initialize Buildozer and Build APK
+    - name: Install Buildozer & Cython
       run: |
-        # Ensure buildozer is in path
+        python3 -m pip install --upgrade pip
+        python3 -m pip install --user Cython==0.29.36 buildozer
+
+    - name: Initialize and Configure Buildozer Spec
+      run: |
         export PATH=$PATH:~/.local/bin
-        
         if [ ! -f "buildozer.spec" ]; then
-            echo y | buildozer init
+            buildozer init
         fi
         
-        # Configure requirements in spec
-        sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/gi' buildozer.spec
-        
-        # Run buildozer
+        # Configure app title, package name, and python requirements for RDX AI Studio
+        sed -i 's/#title = My Application/title = RDX AI Studio/g' buildozer.spec
+        sed -i 's/#package.name = myapp/package.name = rdxaistudio/g' buildozer.spec
+        sed -i 's/#package.domain = org.example/package.domain = com.rdx/g' buildozer.spec
+        sed -i 's/#source.include_exts = py,png,jpg,kv,atlas/source.include_exts = py,png,jpg,kv,atlas,txt/g' buildozer.spec
+        sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/g' buildozer.spec
+        sed -i 's/#orientation = portrait/orientation = portrait/g' buildozer.spec
+
+    - name: Build Real APK with Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
         buildozer -v android debug
 
     - name: Upload APK Artifact
