@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -33,7 +33,6 @@ jobs:
     - name: Build APK via Buildozer
       run: |
         cd extracted_project
-        # Agar zip ke andar folder ka naam 'RDX AI Studio' hai toh usme enter karein
         if [ -d "RDX AI Studio" ]; then
           cd "RDX AI Studio"
         fi
@@ -42,14 +41,12 @@ jobs:
             buildozer init
         fi
         
-        # Requirements configure karna
         sed -i 's/#requirements = python3,kivy/requirements = python3,kivy,yt-dlp,requests,urllib3,certifi/g' buildozer.spec
         
-        # APK build karna
         buildozer -v android debug
 
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: rdx-apk-output
         path: extracted_project/**/bin/*.apk
