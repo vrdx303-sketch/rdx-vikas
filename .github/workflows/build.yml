@@ -19,8 +19,17 @@ jobs:
 
     - name: Extract Project Zip
       run: |
-        echo "Unzipping RDX.zip..."
-        unzip RDX.zip -d extracted_project
+        echo "Listing files..."
+        ls -la
+        if [ -f "RDX.zip" ]; then
+          unzip RDX.zip -d extracted_project
+        elif [ -d "RDX AI Studio" ]; then
+          mkdir -p extracted_project
+          cp -r "RDX AI Studio" extracted_project/
+        else
+          mkdir -p extracted_project/RDX_AI_Studio
+          cp -r * extracted_project/RDX_AI_Studio/ || true
+        }
         ls -la extracted_project
 
     - name: Install Buildozer & System Dependencies
@@ -35,6 +44,8 @@ jobs:
         cd extracted_project
         if [ -d "RDX AI Studio" ]; then
           cd "RDX AI Studio"
+        elif [ -d "RDX_AI_Studio" ]; then
+          cd "RDX_AI_Studio"
         fi
         
         if [ ! -f "buildozer.spec" ]; then
